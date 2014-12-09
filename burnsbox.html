@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang=en>
+<head>
+<title>BurnsBox</title>
+<meta charset=utf-8>
+<style>
+body { 
+  font-family: Avenir, sans-serif;
+  background-color: #000; margin: 0; 
+}
+#burnsbox-control { 
+  background: #ccc; 
+  padding: 1rem;
+}
+#canvas { min-height: 100vh; }
+#burnsbox-control input { 
+  vertical-align: middle; 
+  margin: 0 1rem; 
+}
+#startbutton { 
+  display: none; 
+}
+:-webkit-full-screen {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    min-height: 100vh;
+}
+</style>
+</head>
+<body>
+<div id="burnsbox-control">
+<label for="imgfile">Image Files</label>
+    <input type="file" id="imgfile" multiple accept="image/*">
+<label for="musicfile">Background Music</label>
+    <input type="file" id="musicfile" accept="audio/*">
+<label for="bgcolor">Background color</label>
+    <input type="color" value="#000000" id="bgcolor" oninput="changeBG(bgcolor.value)">
+    <button id="startbutton">START</button>
+</div>
+
+<div id="canvas"></div>
+<script>
+var imgArray = [];
+var newimg = document.createElement("img");
+var musicplayer = document.createElement("audio");
+var startbutton = document.getElementById("startbutton");
+var controlpanel = document.getElementById("burnsbox-control");
+var canvas = document.getElementById("canvas");
+var imgstrip = document.getElementById("imgstrip");
+var bgcolor = document.getElementById("bgcolor");
+newimg.id = "newimg";
+
+function addMedia(e) {
+   e.stopPropagation();
+   e.preventDefault();
+   var files = e.target.files;
+   console.log(files[0].type);
+   if (files[0].type == "image/jpg" || files[0].type == "image/jpeg" || files[0].type == "image/png" || files[0].type == "image/gif" ) {
+	   // must be images
+	   for (var i = 0, f; f = files[i]; ++i) { 	
+	   		imgArray[i] = URL.createObjectURL(files[i]);  
+		}
+		startbutton.style.display = "inline-block";
+}
+   if (files[0].type == "audio/mp3") {
+	   var music = URL.createObjectURL(e.target.files[0]);
+	   musicplayer.src = music;
+	   musicplayer.id = "bgsound";
+	   document.body.appendChild(musicplayer);  
+	   musicplayer.autoplay = "true";   
+	   musicplayer.loop = "true"; 
+   }
+}
+
+function launchFullScreen(element) {
+if (element.requestFullscreen)
+{ element.requestFullscreen(); }
+else if (element.mozRequestFullScreen)
+{ element.mozRequestFullScreen(); }
+else if (element.webkitRequestFullscreen)
+{ element.webkitRequestFullscreen(); }
+else if (element.msRequestFullscreen)
+{ element.msRequestFullscreen(); }
+document.styleSheets[0].addRule(':-webkit-full-screen', 'background: ' + bgcolor.value);
+  console.log(bgcolor.value);
+drift(0);
+}
+
+function changeBG(colorValue) {
+ document.body.style.backgroundColor = colorValue;
+}
+document.getElementById("imgfile").onchange = addMedia;	
+document.getElementById("startbutton").onclick = function(){ launchFullScreen(canvas) };
+
+function drift(index) {
+	newimg.src = imgArray[index];
+	canvas.appendChild(newimg);
+	newimg.style.width = "40%";
+var startPercentageX = Math.floor(Math.random() * ((300 - (-100)) + 1) + (-100));
+if (startPercentageX > 200) {
+	var endPercentageX = Math.floor(Math.random() * ((200 - (-100)) + 1) + (-200));
+	} else {
+		endPercentageX = Math.floor(Math.random() * ((300 - 100) + 1) + 100);
+	}
+var player = newimg.animate([
+  {transform: 'translate(' + startPercentageX + '%, -100%)', opacity: '0'},
+  {transform: 'translate('+(endPercentageX - startPercentageX) + ', 50%)', opacity: '1'},
+  {transform: 'translate(' + endPercentageX + '%, 200%)', opacity: '0' }
+], { duration: 25000, easing: "linear" });
+
+player.onfinish = function(e) {
+    newimg.src = "";
+    if (index < imgArray.length - 1) { drift(index + 1); } else { drift(0); }
+   } 
+}
+</script>
+</body>
+</html>

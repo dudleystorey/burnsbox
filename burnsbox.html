@@ -8,11 +8,12 @@ body {
   font-family: Avenir, sans-serif;
   background-color: #000; margin: 0; 
 }
+
 #burnsbox-control { 
   background: #ccc; 
   padding: 1rem;
 }
-#canvas { min-height: 100vh; }
+#canvas { min-height: 10vh; }
 #burnsbox-control input { 
   vertical-align: middle; 
   margin: 0 1rem; 
@@ -47,15 +48,14 @@ var musicplayer = document.createElement("audio");
 var startbutton = document.getElementById("startbutton");
 var controlpanel = document.getElementById("burnsbox-control");
 var canvas = document.getElementById("canvas");
-var imgstrip = document.getElementById("imgstrip");
 var bgcolor = document.getElementById("bgcolor");
+var end = false;
 newimg.id = "newimg";
 
 function addMedia(e) {
    e.stopPropagation();
    e.preventDefault();
    var files = e.target.files;
-   console.log(files[0].type);
    if (files[0].type == "image/jpg" || files[0].type == "image/jpeg" || files[0].type == "image/png" || files[0].type == "image/gif" ) {
 	   // must be images
 	   for (var i = 0, f; f = files[i]; ++i) { 	
@@ -83,18 +83,21 @@ else if (element.webkitRequestFullscreen)
 else if (element.msRequestFullscreen)
 { element.msRequestFullscreen(); }
 document.styleSheets[0].addRule(':-webkit-full-screen', 'background: ' + bgcolor.value);
-  console.log(bgcolor.value);
 drift(0);
 }
 
 function changeBG(colorValue) {
- document.body.style.backgroundColor = colorValue;
+canvas.style.backgroundColor = colorValue;
 }
 document.getElementById("imgfile").onchange = addMedia;	
 document.getElementById("musicfile").onchange = addMedia;	
 document.getElementById("startbutton").onclick = function(){ launchFullScreen(canvas) };
 
+
+
 function drift(index) {
+	canvas.style.minHeight = "100vh";
+	document.addEventListener('webkitfullscreenchange', exitHandler, false);
 	newimg.src = imgArray[index];
 	canvas.appendChild(newimg);
 	newimg.style.width = "40%";
@@ -110,11 +113,27 @@ var player = newimg.animate([
   {transform: 'translate(' + endPercentageX + '%, 200%)', opacity: '0' }
 ], { duration: 25000, easing: "linear" });
 
+function exitHandler(){
+    if (document.webkitIsFullScreen == false) {
+	   player.cancel();
+	   var bgsound = document.getElementById("bgsound");
+	   if (bgsound !== null) { bgsound.pause(); }
+	   canvas.remove();
+	   end = true;
+	   return;
+    }
+} 
+
+
 player.onfinish = function(e) {
     newimg.src = "";
     if (index < imgArray.length - 1) { drift(index + 1); } else { drift(0); }
    } 
-}
+}                                      
+
+
+
+   
 </script>
 </body>
 </html>
